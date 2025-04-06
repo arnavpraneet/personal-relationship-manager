@@ -79,13 +79,20 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
             # Stop and remove existing containers
-            docker-compose down
+            docker compose --env-file .env.docker down
             
             # Update .env.docker with original variables
             echo 'POSTGRES_USER=${{ secrets.POSTGRES_USER }}' > .env.docker
             echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' >> .env.docker
             echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env.docker
             
-            # Start the containers (using .env.docker)
-            docker-compose --env-file .env.docker up -d
+            # Verify environment variables are set
+            echo 'Current .env.docker contents:'
+            cat .env.docker
+            
+            # Start the containers with explicit env file
+            docker compose --env-file .env.docker up -d
+            
+            # Verify containers are running
+            docker compose --env-file .env.docker ps
           " 
