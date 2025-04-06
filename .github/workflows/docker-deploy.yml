@@ -52,7 +52,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           builder: ${{ steps.buildx.outputs.name }}
-          load: true
 
   deploy:
     needs: build-and-push
@@ -71,6 +70,14 @@ jobs:
             # Navigate to the deployment directory
             cd ${{ env.DEPLOY_DIR }}
             
+            # Ensure we're using the correct docker-compose file
+            if [ -f docker-compose.yaml ]; then
+              echo 'Using docker-compose.yaml'
+            else
+              echo 'Error: docker-compose.yaml not found'
+              exit 1
+            fi
+            
             # Backup existing .env.docker if it exists
             if [ -f .env.docker ]; then
               cp .env.docker .env.docker.backup
@@ -82,7 +89,7 @@ jobs:
             
             # Stop and remove existing containers
             echo 'Stopping existing containers...'
-            docker compose down
+            docker compose -f docker-compose.yaml down
             
             # Update .env.docker with original variables
             echo 'Creating environment files...'
@@ -105,7 +112,7 @@ jobs:
             
             # Start the containers with explicit env file
             echo 'Starting containers...'
-            docker compose --env-file .env.docker up -d --build
+            docker compose -f docker-compose.yaml --env-file .env.docker up -d --build
             
             # Wait for database to be ready
             echo 'Waiting for database to be ready...'
@@ -113,9 +120,9 @@ jobs:
             
             # Verify containers are running
             echo 'Checking container status...'
-            docker compose ps
+            docker compose -f docker-compose.yaml ps
             
             # Check container logs
             echo 'Checking container logs...'
-            docker compose logs
+            docker compose -f docker-compose.yaml logs
           " 
