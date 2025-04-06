@@ -29,6 +29,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks: #first part of this is under whichever service you are connecting, the second part goes under the docker file.
+      - proxy
+
+      
+networks:
+  proxy:
+    external: true
 
 volumes:
   pgdata:
