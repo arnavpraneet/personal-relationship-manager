@@ -21,6 +21,9 @@ jobs:
       - name: Test SSH Connection
         run: |
           echo "Testing SSH connection to ${{ secrets.SERVER_HOST }}"
+          echo "Using username: ${{ secrets.SERVER_USERNAME }}"
+          echo "SSH key fingerprint:"
+          ssh-keygen -l -f ~/.ssh/deploy_key
           ssh -v -i ~/.ssh/deploy_key ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful!'"
           
       - name: Check SSH Logs
