@@ -7,13 +7,25 @@ jobs:
   test-ssh:
     runs-on: ubuntu-latest
     steps:
+      - name: Check SSH Key Format
+        run: |
+          echo "SSH Key (first 50 chars):"
+          echo "${{ secrets.SERVER_SSH_KEY }}" | head -c 50
+          echo ""
+          echo "SSH Key Format:"
+          echo "${{ secrets.SERVER_SSH_KEY }}" | ssh-keygen -l -f /dev/stdin || true
+          
       - name: Test SSH Connection
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
           script: |
             echo "SSH connection successful!"
             echo "Current directory: $(pwd)"
-            echo "User: $(whoami)" 
+            echo "User: $(whoami)"
+            echo "SSH Version: $(ssh -V)"
+            echo "Hostname: $(hostname)"
+            echo "IP Address: $(hostname -I)" 
