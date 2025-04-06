@@ -52,6 +52,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           builder: ${{ steps.buildx.outputs.name }}
+          load: true
 
   deploy:
     needs: build-and-push
@@ -76,12 +77,15 @@ jobs:
             fi
             
             # Pull the latest image
+            echo 'Pulling latest image...'
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
             # Stop and remove existing containers
-            docker compose --env-file .env.docker down
+            echo 'Stopping existing containers...'
+            docker compose down
             
             # Update .env.docker with original variables
+            echo 'Creating environment files...'
             echo 'POSTGRES_USER=${{ secrets.POSTGRES_USER }}' > .env.docker
             echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' >> .env.docker
             echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env.docker
@@ -90,19 +94,28 @@ jobs:
             echo 'DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}?schema=public' > .env
             echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> .env
             
-            # Verify environment variables are set
-            echo 'Current .env.docker contents:'
-            cat .env.docker
-            echo 'Current .env contents:'
-            cat .env
+            # Verify environment files exist
+            echo 'Verifying environment files...'
+            if [ -f .env.docker ] && [ -f .env ]; then
+              echo 'Environment files created successfully'
+            else
+              echo 'Error: Environment files not created'
+              exit 1
+            fi
             
             # Start the containers with explicit env file
-            docker compose --env-file .env.docker up -d
+            echo 'Starting containers...'
+            docker compose --env-file .env.docker up -d --build
             
             # Wait for database to be ready
             echo 'Waiting for database to be ready...'
             sleep 10
             
             # Verify containers are running
-            docker compose --env-file .env.docker ps
+            echo 'Checking container status...'
+            docker compose ps
+            
+            # Check container logs
+            echo 'Checking container logs...'
+            docker compose logs
           " 
