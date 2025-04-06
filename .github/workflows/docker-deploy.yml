@@ -86,12 +86,22 @@ jobs:
             echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' >> .env.docker
             echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env.docker
             
+            # Create a temporary .env file for the app with correct DATABASE_URL
+            echo 'DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}?schema=public' > .env
+            echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> .env
+            
             # Verify environment variables are set
             echo 'Current .env.docker contents:'
             cat .env.docker
+            echo 'Current .env contents:'
+            cat .env
             
             # Start the containers with explicit env file
             docker compose --env-file .env.docker up -d
+            
+            # Wait for database to be ready
+            echo 'Waiting for database to be ready...'
+            sleep 10
             
             # Verify containers are running
             docker compose --env-file .env.docker ps
