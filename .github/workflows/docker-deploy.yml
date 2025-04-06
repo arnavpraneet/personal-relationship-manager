@@ -81,15 +81,10 @@ jobs:
             # Stop and remove existing containers
             docker-compose down
             
-            # Update .env.docker with all environment variables
+            # Update .env.docker with original variables
             echo 'POSTGRES_USER=${{ secrets.POSTGRES_USER }}' > .env.docker
             echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' >> .env.docker
             echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env.docker
-            echo 'DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@db:5432/${{ secrets.POSTGRES_DB }}' >> .env.docker
-            echo 'NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}' >> .env.docker
-            echo 'NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}' >> .env.docker
-            echo 'GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}' >> .env.docker
-            echo 'GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}' >> .env.docker
             
             # Start the containers (using .env.docker)
             docker-compose --env-file .env.docker up -d
